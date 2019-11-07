@@ -31,7 +31,7 @@ contract('Game Test', () => {
             }
         }
         for (var i = 0; i < 2; ++i) {
-            battleship.reveal(positions[i], nonce[i]);
+            await battleship.reveal(positions[i], nonce[i]);
         }
         assert(true);
     });
