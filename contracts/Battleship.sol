@@ -17,8 +17,9 @@ contract Battleship {
     constructor() public {
         owner = msg.sender;
         for(uint i = 0 ;i<2;++i){
-            for(uint j=0;j<100;++j){
+            for(uint j = 0;j<100;++j){
                 move_log[i][j] = 100;
+                reply_log[i][j] = 5;
             }
         }
 
@@ -66,6 +67,7 @@ contract Battleship {
         /// @dev The player for whom reply is given
         uint8 player = (player_address[0] == msg.sender) ? 1 : 0; // TODO: Fix bug allowing multiple participating addresses
         require(move_log[player][move_idx[player]] != 100, "Move not made");
+        require(reply_log[player][move_idx[player]] == 5, "Reply already made");
         reply_log[player][move_idx[player]] = _reply;
         move_idx[player] = move_idx[player] + 1;
         score[player] = score[player] + _reply;
