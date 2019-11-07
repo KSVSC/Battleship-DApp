@@ -33,7 +33,6 @@ contract Battleship {
             commitment[0] = _commit;
             return;
         }
-        require(player_address[0] != msg.sender, "player cannot register twice");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
         return;
@@ -49,11 +48,7 @@ contract Battleship {
         require((player == first && move_idx[player] == move_idx[1-player]) || (player != first && move_idx[player] + 1 == move_idx[1-player]), "Out of turn");
         require(board_intermediate[player][_position] == false, "Already hit");
         board_intermediate[player][_position] = true;
-<<<<<<< HEAD
-        require(move_log[player][move_idx[player]] == 0, "Position given");
-=======
         require(move_log[player][move_idx[player]] == 0, "Out of turn1");
->>>>>>> d9616b4be3120a6a2f81b734385fdb1d63b47bf1
         move_log[player][move_idx[player]] = _position;
         // TODO: Emit event that move has been made
         return "made move";
@@ -61,15 +56,9 @@ contract Battleship {
 
     function reply_move(uint8 _reply) public returns (string memory) {
         /// @dev The player for whom reply is given
-<<<<<<< HEAD
-        player = (player_address[0] == msg.sender) ? 1 : 0;
-        require(move_log[player][move_idx[player]] != 0, "No move given");
-        reply_log[move_idx[player]] = _reply;
-=======
         uint8 player = (player_address[0] == msg.sender) ? 1 : 0; // TODO: Fix bug allowing multiple participating addresses
         require(move_log[player][move_idx[player]] != 0, "Out of turn");
         reply_log[player][move_idx[player]] = _reply;
->>>>>>> d9616b4be3120a6a2f81b734385fdb1d63b47bf1
         move_idx[player] = move_idx[player] + 1;
         score[player] = score[player] + _reply;
         if(score[player] == 20) {
