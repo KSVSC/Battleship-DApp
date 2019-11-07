@@ -1,6 +1,6 @@
 var Battleship = artifacts.require("Battleship");
 
-contract('Battleship', function (accounts) {
+contract('Initial Test', function (accounts) {
     const ERROR = 'VM Exception while processing transaction: revert'
 
     // function sleep(miliseconds) {
@@ -60,8 +60,7 @@ contract('Battleship', function (accounts) {
                     assert(err, "Two Players commited already");
                 }
             });
-    })
-
+    });
 //     ////////////////////play function//////////////////////////
 //     it("Player1 can't play before Player2 registers", () => {
 //         return SPSLS.deployed()

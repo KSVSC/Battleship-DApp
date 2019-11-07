@@ -70,7 +70,7 @@ contract Battleship {
         require(reply_log[player][move_idx[player]] == 5, "Reply already made");
         reply_log[player][move_idx[player]] = _reply;
         move_idx[player] = move_idx[player] + 1;
-        score[player] = score[player] + _reply;
+        score[player] = score[player] + 1;
         if(score[player] == 20) {
             end_game();
         }
