@@ -33,6 +33,7 @@ contract Battleship {
             commitment[0] = _commit;
             return;
         }
+        require(player_address[0] != msg.sender, "player cannot register twice");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
         return;
@@ -45,7 +46,7 @@ contract Battleship {
         require(move_idx[player] == move_idx[1-player] - 1, "Out of turn");
         require(board_intermediate[player][_position] == false, "Already hit");
         board_intermediate[player][_position] = true;
-        require(move_log[player][move_idx[player]] == 0, "Out of turn");
+        require(move_log[player][move_idx[player]] == 0, "Position given");
         move_log[player][move_idx[player]] = _position;
         // TODO: Emit event that move has been made
     }
@@ -53,7 +54,7 @@ contract Battleship {
     function reply_move(uint8 _reply) public {
         /// @dev The player for whom reply is given
         player = (player_address[0] == msg.sender) ? 1 : 0;
-        require(move_log[player][move_idx[player]] != 0, "Out of turn");
+        require(move_log[player][move_idx[player]] != 0, "No move given");
         reply_log[move_idx[player]] = _reply;
         move_idx[player] = move_idx[player] + 1;
         score[player] = score[player] + _reply;
