@@ -16,6 +16,12 @@ contract Battleship {
     uint8 first = 2;
     constructor() public {
         owner = msg.sender;
+        for(uint i = 0 ;i<2;++i){
+            for(uint j=0;j<100;++j){
+                move_log[i][j] = 100;
+            }
+        }
+
     }
 
     /// @notice Deposit ether into the contract
@@ -33,6 +39,8 @@ contract Battleship {
             commitment[0] = _commit;
             return;
         }
+        require(player_address[0] != msg.sender, "Player cannot commit twice");
+        require(player_address[1] == address(0), "Two Players commited already");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
         return;
@@ -48,7 +56,7 @@ contract Battleship {
         require((player == first && move_idx[player] == move_idx[1-player]) || (player != first && move_idx[player] + 1 == move_idx[1-player]), "Out of turn");
         require(board_intermediate[player][_position] == false, "Already hit");
         board_intermediate[player][_position] = true;
-        require(move_log[player][move_idx[player]] == 0, "Out of turn1");
+        require(move_log[player][move_idx[player]] == 100, "Move already made");
         move_log[player][move_idx[player]] = _position;
         // TODO: Emit event that move has been made
         return "made move";
@@ -57,7 +65,7 @@ contract Battleship {
     function reply_move(uint8 _reply) public returns (string memory) {
         /// @dev The player for whom reply is given
         uint8 player = (player_address[0] == msg.sender) ? 1 : 0; // TODO: Fix bug allowing multiple participating addresses
-        require(move_log[player][move_idx[player]] != 0, "Out of turn");
+        require(move_log[player][move_idx[player]] != 100, "Move not made");
         reply_log[player][move_idx[player]] = _reply;
         move_idx[player] = move_idx[player] + 1;
         score[player] = score[player] + _reply;
