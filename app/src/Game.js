@@ -1,18 +1,18 @@
 import React from 'react';
 import Two from 'two.js';
 
-class Player extends React.Component {
+class Game extends React.Component {
     constructor(props) {
         super(props);
-        this.myRef = React.createRef();
+        this.gameRef = React.createRef();
     }
 
     componentDidMount() {
         // Make an instance of two and place it on the page.
-        var elem = this.myRef.current;
+        var elem = this.gameRef.current;
         var params = { width: 285, height: 200 };
         var two = new Two(params).appendTo(elem);
-
+        // GAME Code goes here !!
         // two has convenience methods to create shapes.
         var circle = two.makeCircle(72, 100, 50);
         var rect = two.makeRectangle(213, 100, 100, 100);
@@ -32,8 +32,8 @@ class Player extends React.Component {
     }
 
     render() {
-        return <div ref={this.myRef} />;
+        return <div ref={this.gameRef} />;
     }
 }
 
-export default Player;
+export default Game;

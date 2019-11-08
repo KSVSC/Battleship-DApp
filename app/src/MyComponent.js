@@ -5,7 +5,7 @@ import {
   ContractForm,
 } from "@drizzle/react-components";
 import logo from "./logo.png";
-import Player from './player';
+import Game from './Game';
 
 export default ({ accounts }) => (
   <div className="App">
@@ -19,7 +19,7 @@ export default ({ accounts }) => (
       <h2>Active Account</h2>
       <AccountData accountIndex={0} units="ether" precision={3} />
     </div>
-    <Player />
+    <Game />
     <div className="section">
       <h2>SimpleStorage</h2>
       <p>
