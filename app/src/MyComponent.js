@@ -4,9 +4,8 @@ import {
   ContractData,
   ContractForm,
 } from "@drizzle/react-components";
-import Player from './player'
 import logo from "./logo.png";
-import TwoRotation from "./player";
+import Player from './player';
 
 export default ({ accounts }) => (
   <div className="App">
@@ -15,12 +14,12 @@ export default ({ accounts }) => (
       <h1>Drizzle Examples</h1>
       <p>Examples of how to get started with Drizzle in various situations.</p>
     </div>
-    <TwoRotation />
+    <div id="draw-shapes" />
     <div className="section">
       <h2>Active Account</h2>
       <AccountData accountIndex={0} units="ether" precision={3} />
     </div>
-
+    <Player />
     <div className="section">
       <h2>SimpleStorage</h2>
       <p>
