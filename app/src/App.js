@@ -9,6 +9,7 @@ import MyContainer from "./MyContainer";
 
 class App extends Component {
   render() {
+    console.log(drizzleOptions);
     return (
       <DrizzleProvider options={drizzleOptions}>
         <LoadingContainer>

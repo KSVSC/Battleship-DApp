@@ -1,6 +1,4 @@
-import SimpleStorage from "./contracts/SimpleStorage.json";
-import ComplexStorage from "./contracts/ComplexStorage.json";
-import TutorialToken from "./contracts/TutorialToken.json";
+import Battleship from "./contracts/Battleship.json";
 
 const options = {
   web3: {
@@ -10,9 +8,8 @@ const options = {
       url: "ws://127.0.0.1:8545",
     },
   },
-  contracts: [SimpleStorage, ComplexStorage, TutorialToken],
+  contracts: [Battleship],
   events: {
-    SimpleStorage: ["StorageSet"],
   },
   polls: {
     accounts: 1500,
