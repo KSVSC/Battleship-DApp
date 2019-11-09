@@ -14,6 +14,7 @@ class Game extends React.Component {
             grid: undefined,
             stage: 'place',
             positions: [],
+            hashed_indices: {},
             ship: {
                 type: 0,
                 orientation: 'h'
@@ -51,16 +52,58 @@ class Game extends React.Component {
     }
 
     componentWillUpdate() {
-        console.log(this.state.positions);
+        // console.log(this.state.positions);
         this.two.update();
     }
 
     placeShip = start => {
         const type = this.state.ship.type;
         var positions = this.state.positions;
-        const diff = (this.state.ship.orientation == 'v') ? 1 : 10;
-        for(var i = start; i < start + type*diff && i < 100; i=i+diff) {
-            positions.push({type, i});
+        var diff = (this.state.ship.orientation == 'h') ? 10 : 1;
+
+        // Toggle ships
+        if (start in this.state.hashed_indices && this.state.hashed_indices[start] != '-') {
+            var change = (this.state.hashed_indices[start] == 'h') ? 1 : 10;
+            var old = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
+            //TODO: check for bounding ship inside grid  
+            for (var i = start + change; i < start + type * change && i < 100; i = i + change) {
+                if (i in this.state.hashed_indices) {
+                    return positions;
+                }
+            }
+            for (var i = start; i < start + type * old && i < 100; i = i + old) {
+                this.state.grid[i].fill = COLOR_SKY;
+                for (var j = 0; j < positions.length; j++) {
+                    if (positions[j]['i'] == i)
+                        positions.splice(j, 1);
+                }
+                if(i != start) delete this.state.hashed_indices[i];
+            }
+            this.state.hashed_indices[start] = (this.state.hashed_indices[start] == 'h') ? 'v' : 'h';
+            diff = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
+        }
+        else if (this.state.hashed_indices[start] == '-') {
+            return positions;                 
+        }
+        else {
+            this.state.hashed_indices[start] = 'h';
+        }
+
+        
+        // Check for overlapping
+        for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
+            //TODO: check for bounding ship inside grid  
+            // console.log(this.state.grid.findIndex(z => z.id == i))
+            if (i in this.state.hashed_indices) {
+                delete this.state.hashed_indices[start]
+                return positions;
+            }
+        }
+        
+        for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
+            if (i == start) this.state.hashed_indices[i] = this.state.hashed_indices[start];
+            else this.state.hashed_indices[i] = '-';
+            positions.push({ type, i });                
         }
         return positions;
     }
@@ -89,7 +132,7 @@ class Game extends React.Component {
             var start = grid.findIndex(z => z.id == e.target.id);
             if(start != -1) {
                 const type = this.state.ship.type;
-                const diff = (this.state.ship.orientation == 'v') ? 1 : 10;
+                const diff = (this.state.ship.orientation == 'h') ? 10 : 1;
                 grid.forEach((z, idx) => z.fill = (!this.state.positions.find(a => a.i == idx)) ? COLOR_SKY : COLOR_BROWN);
                 for(var i = start; i < start + type*diff && i < 100; i=i+diff) {
                     grid[i].fill = COLOR_BROWN;
