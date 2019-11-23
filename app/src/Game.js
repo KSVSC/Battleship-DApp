@@ -35,6 +35,7 @@ class Game extends React.Component {
         rect.opacity = 0.75;
         rect.noStroke();
         var grid = new Array(100);
+
         for(var i = 0; i < 10; ++i) {
             for(var j = 0; j < 10; ++j) {
                 var rect = this.two.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
@@ -52,7 +53,6 @@ class Game extends React.Component {
     }
 
     componentWillUpdate() {
-        // console.log(this.state.positions);
         this.two.update();
     }
 
@@ -65,47 +65,72 @@ class Game extends React.Component {
         if (start in this.state.hashed_indices && this.state.hashed_indices[start] != '-') {
             var change = (this.state.hashed_indices[start] == 'h') ? 1 : 10;
             var old = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
-            //TODO: check for bounding ship inside grid  
+            
+            // Check for bounding ship inside grid  
+            const last1 = start + (type-1) * change;
+            if ((this.state.hashed_indices[start] == 'v' && (last1 / 10) >= 10) || (this.state.hashed_indices[start] == 'h' && ~~(last1 / 10) != ~~(start / 10))) {
+                return positions;
+            }
+
+            //overlapping check
             for (var i = start + change; i < start + type * change && i < 100; i = i + change) {
                 if (i in this.state.hashed_indices) {
                     return positions;
                 }
             }
+
+            //Removing old positions
             for (var i = start; i < start + type * old && i < 100; i = i + old) {
                 this.state.grid[i].fill = COLOR_SKY;
                 for (var j = 0; j < positions.length; j++) {
                     if (positions[j]['i'] == i)
                         positions.splice(j, 1);
                 }
-                if(i != start) delete this.state.hashed_indices[i];
+                if (i != start) delete this.state.hashed_indices[i];
             }
             this.state.hashed_indices[start] = (this.state.hashed_indices[start] == 'h') ? 'v' : 'h';
             diff = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
         }
         else if (this.state.hashed_indices[start] == '-') {
-            return positions;                 
+            // cells alreay occupied
+            return positions;
         }
+            
+        //Non toggle case
         else {
             this.state.hashed_indices[start] = 'h';
         }
-
         
+        //check for limit ship type
+        var count = 0;
+        for (var t = 0; t < positions.length; t++) {
+            if (positions[t]['type'] == type)
+                var count = count + 1;
+        }
+        if (count/type  >= 2) {
+            return positions;
+        }
+            
         // Check for overlapping
         for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
-            //TODO: check for bounding ship inside grid  
-            // console.log(this.state.grid.findIndex(z => z.id == i))
             if (i in this.state.hashed_indices) {
                 delete this.state.hashed_indices[start]
                 return positions;
             }
         }
-        
-        for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
-            if (i == start) this.state.hashed_indices[i] = this.state.hashed_indices[start];
-            else this.state.hashed_indices[i] = '-';
-            positions.push({ type, i });                
+
+        // Check for bounding ship inside grid
+        const last = start + (type - 1) * diff;
+        if ((this.state.hashed_indices[start] == 'h' && (last / 10) < 10) || (this.state.hashed_indices[start] == 'v' && ~~(last / 10) == ~~(start / 10))) {
+            // push new positions
+            for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
+                if (i == start) this.state.hashed_indices[i] = this.state.hashed_indices[start];
+                else this.state.hashed_indices[i] = '-';
+                positions.push({ type, i });
+            }
+            return positions;
+
         }
-        return positions;
     }
 
     handleMouseDown = e => {
@@ -115,7 +140,7 @@ class Game extends React.Component {
         if(this.state.stage == 'place') {
             var start = this.state.grid.findIndex(z => z.id == e.target.id);
             if(start != -1) {
-                positions = this.placeShip(start);
+                positions = this.placeShip(start) || this.state.positions;
             }
         }
         this.setState({
