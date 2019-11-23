@@ -116,45 +116,45 @@ contract Battleship {
     /// @notice Reveal the positions
     /// @param _positions Ordered list of the positions of player's ships
     /// @param _nonce Same nonce used for commitment earlier
-    function reveal(uint8[20] memory _positions, uint256 _nonce) public {
-        require(score[0] == 20 || score[1] == 20, "Game Over");
+    function reveal(uint8[20] memory _positions, uint256 _nonce) public returns (uint8){
+        require(score[0] == 20 || score[1] == 20, "Game not yet over");
         uint8 player = (player_address[0] == msg.sender) ? 0 : 1;
         bytes32 test_hash = keccak256(abi.encodePacked(_positions, _nonce));
         if(test_hash != commitment[player]) {
-            declare_winner(1-player);
+            return declare_winner(1-player);
         }
         uint8[100] memory board_original;
         for(uint8 i = 0; i < 4; ++i) {
             if(!place_ship(_positions, board_original, i, 1)) {
-                declare_winner(1-player);
+                return declare_winner(1-player);
             }
         }
         for(uint8 i = 4; i < 10; i = i+2) {
             if(!place_ship(_positions, board_original, i, 2)) {
-                declare_winner(1-player);
+                return declare_winner(1-player);
             }
         }
         for(uint8 i = 10; i < 16; i = i+3) {
             if(!place_ship(_positions, board_original, i, 3)) {
-                declare_winner(1-player);
+                return declare_winner(1-player);
             }
         }
         for(uint8 i = 16; i < 20; i = i+4) {
             if(!place_ship(_positions, board_original, i, 4)) {
-                declare_winner(1-player);
+                return declare_winner(1-player);
             }
         }
         for(uint8 i = 0; i < move_idx[1-player]; ++i) {
             if(board_original[move_log[1-player][i]] != reply_log[1-player][i]) {
-                declare_winner(1-player);
+                return declare_winner(1-player);
             }
         }
         commitment[player] = 0x0;
         if(commitment[0] == 0x0 && commitment[1] == 0x0) {
             if(score[0] == 20) {
-                declare_winner(0);
+                return declare_winner(0);
             } else {
-                declare_winner(1);
+                return declare_winner(1);
             }
         }
     }
