@@ -1,4 +1,5 @@
 var Battleship = artifacts.require("Battleship");
+const truffleAssert = require('truffle-assertions');
 let accounts, battleship;
 contract('Test', () => {
     beforeEach(async () => {
@@ -112,10 +113,17 @@ contract('Test', () => {
     });
 
     it("Reveal", async () => {
-        let winner = await battleship.reveal(positions[1], nonce[0], { from: accounts[1] });
-        await battleship.reveal(positions[1], nonce[1], { from: accounts[2] });
-        console.log(winner)
-        assert.equal(winner.valueOf(), 1, "Player2 WIN")
+        let a = await battleship.reveal(positions[1], nonce[0], { from: accounts[1] });
+        let winner = await battleship.reveal(positions[1], nonce[1], { from: accounts[2] });
+        // let x = await new Promise((resolve, reject) => battleship.events.Winner((e, r) => {
+        //     console.log(e, r);
+        //     resolve(r);
+        // }));
+        console.log(winner.logs);
+        truffleAssert.eventEmitted(winner, 'Winner', (x) => {
+            return winner.addr == accounts[1];
+        });
+        // assert.equal(winner.addr, accounts[1], "Player2 WIN")
     });
         // for (var i = 0; i < 2; ++i) {
         //     await battleship.reveal(positions[i], nonce[i]);
