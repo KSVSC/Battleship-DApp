@@ -1,35 +1,37 @@
 import React from "react";
-import {
-  AccountData,
-  ContractData,
-  ContractForm,
-} from "@drizzle/react-components";
 import logo from "./logo.png";
+import Button from '@material-ui/core/Button';
 import Game from './Game';
 
-export default ({ accounts }) => (
-  <div className="App">
-    <div>
-      <img src={logo} alt="drizzle-logo" />
-      <h1>Drizzle Examples</h1>
-      <p>Examples of how to get started with Drizzle in various situations.</p>
-    </div>
-    <div id="draw-shapes" />
-    <div className="section">
-      <h2>Active Account</h2>
-      <AccountData accountIndex={0} units="ether" precision={3} />
-    </div>
-    <Game />
-    <div className="section">
-      <h2>SimpleStorage</h2>
-      <p>
-        This shows a simple ContractData component with no arguments, along with
-        a form to set its value.
-      </p>
-      <ContractForm contract="Battleship" method="commit" />
-      <ContractForm contract="Battleship" method="make_move" />
-      <ContractForm contract="Battleship" method="reply_move" />
-      <ContractForm contract="Battleship" method="reveal" />
-    </div>
-  </div>
-);
+class MyClass extends React.Component{
+  constructor(props) {
+    super(props);
+    console.log(props);
+    this.Battleship = props.drizzle.contracts.Battleship;
+  }
+  render() {
+    return (<div className="App">
+      <div>
+        <img src={logo} alt="drizzle-logo" />
+        <h1>Drizzle Examples</h1>
+        <p>Examples of how to get started with Drizzle in various situations.</p>
+      </div>
+      <div id="draw-shapes" />
+      <Game />
+      <div className="section">
+        <h2>Testing</h2>
+        <Button color="primary" onClick={() => {
+          this.Battleship.methods.commit('0x6fd05809f78fe572eb4fe5c73371d806c3eb14a125a3022df8840a78ccc11d8b').send({
+            from: this.props.drizzleState.accounts[0]
+          }, (e) => {
+            console.log(e);
+          })
+        }}>
+          Click Me!
+        </Button>
+      </div>
+    </div>);
+  }
+};
+
+export default MyClass;
