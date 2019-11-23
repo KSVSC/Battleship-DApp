@@ -16,8 +16,8 @@ contract Battleship {
     uint8 first = 2;
     constructor() public {
         owner = msg.sender;
-        for(uint i = 0 ;i<2;++i){
-            for(uint j = 0;j<100;++j){
+        for(uint i = 0; i<2; ++i){
+            for(uint j = 0; j<100; ++j){
                 move_log[i][j] = 100;
                 reply_log[i][j] = 5;
             }
@@ -25,12 +25,14 @@ contract Battleship {
 
     }
 
+
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
     function deposit(uint _amount) public payable {
         require(msg.value == _amount, "Incorrect Amount, specified amount does not match transaction value");
         // This condition rejects any typos in transaction
     }
+
 
     /// @notice Commit the positions of the ships
     /// @param _commit SHA-3 256 Hash of the Choice and random nonce
@@ -40,15 +42,17 @@ contract Battleship {
             commitment[0] = _commit;
             return;
         }
-        require(player_address[0] != msg.sender, "Player cannot commit twice");
+        require(player_address[0] != msg.sender, "You cannot commit twice");
         require(player_address[1] == address(0), "Two Players commited already");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
         return;
     }
 
+
     function make_move(uint8 _position) public returns (string memory) {
-        require(player_address[1] != address(0), "Both Players still not commited");
+        require(player_address[1] != address(0), "Plese wait!.Other Player still not commited");
+        require(player_address[0] == msg.sender || player_address[1] == msg.sender, "You are not registered");
         require(score[0] < 20 && score[1] < 20, "Game Over");
         uint8 player = (player_address[0] == msg.sender) ? 0 : 1;
         if(move_idx[0] == 0 && move_idx[1] == 0) {
@@ -62,6 +66,7 @@ contract Battleship {
         // TODO: Emit event that move has been made
         return "made move";
     }
+
 
     function reply_move(uint8 _reply) public returns (string memory) {
         /// @dev The player for whom reply is given
@@ -78,10 +83,12 @@ contract Battleship {
         return "made reply";
     }
 
+
     function end_game() public returns (string memory) {
         // TODO: Emit event that GAME OVER
         return "game over";
     }
+
 
     function place_ship(uint8[20] memory _positions, uint8[100] memory _board, uint8 _index, uint8 _size) internal returns (bool){
         uint8 diff = _positions[_index+1] - _positions[_index];
@@ -99,10 +106,13 @@ contract Battleship {
         return true;
     }
 
+
     function declare_winner(uint8 _winner) internal returns (uint8) {
         // TODO: Emit Event to declare winner
         return _winner;
     }
+
+
     /// @notice Reveal the positions
     /// @param _positions Ordered list of the positions of player's ships
     /// @param _nonce Same nonce used for commitment earlier

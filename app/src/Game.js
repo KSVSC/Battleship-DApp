@@ -50,6 +50,7 @@ class Game extends React.Component {
         rect.opacity = 0.75;
         rect.noStroke();
         var grid = new Array(100);
+
         for(var i = 0; i < 10; ++i) {
             for(var j = 0; j < 10; ++j) {
                 var rect = this.two.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
@@ -67,7 +68,6 @@ class Game extends React.Component {
     }
 
     componentWillUpdate() {
-        // console.log(this.state.positions);
         this.two.update();
     }
 
@@ -86,6 +86,8 @@ class Game extends React.Component {
                     return positions;
                 }
             }
+
+            //Removing old positions
             for (var i = start; i < start + type * old && i < 100; i = i + old) {
                 this.state.grid[i].fill = COLOR_SKY;
                 for (var j = 0; j < positions.length; j++) {
@@ -100,11 +102,22 @@ class Game extends React.Component {
         else if (this.state.board_orientation[start] == '-') {
             return positions;                 
         }
+            
+        //Non toggle case
         else {
             this.state.board_orientation[start] = 'h';
         }
-
         
+        //check for limit ship type
+        var count = 0;
+        for (var t = 0; t < positions.length; t++) {
+            if (positions[t]['type'] == type)
+                var count = count + 1;
+        }
+        if (count/type  >= 2) {
+            return positions;
+        }
+            
         // Check for overlapping
         for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
             //TODO: check for bounding ship inside grid  
@@ -120,7 +133,6 @@ class Game extends React.Component {
             else this.state.board_orientation[i] = '-';
             positions.push({ type, i });                
         }
-        return positions;
     }
 
     handleMouseDown = e => {
@@ -130,7 +142,7 @@ class Game extends React.Component {
         if(this.state.stage == 'place') {
             var start = this.state.grid.findIndex(z => z.id == e.target.id);
             if(start != -1) {
-                positions = this.placeShip(start);
+                positions = this.placeShip(start) || this.state.positions;
             }
         }
         this.setState({
