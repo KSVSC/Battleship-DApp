@@ -17,7 +17,7 @@ class MyClass extends React.Component{
         <p>Examples of how to get started with Drizzle in various situations.</p>
       </div>
       <div id="draw-shapes" />
-      <Game />
+      <Game drizzle={this.props.drizzle} drizzleState={this.props.drizzleState}/>
       <div className="section">
         <h2>Testing</h2>
         <Button color="primary" onClick={() => {

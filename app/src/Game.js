@@ -14,7 +14,7 @@ class Game extends React.Component {
             grid: undefined,
             stage: 'place',
             positions: [],
-            hashed_indices: {},
+            board_orientation: {},
             ship: {
                 type: 0,
                 orientation: 'h'
@@ -22,6 +22,21 @@ class Game extends React.Component {
         };
         var params = { width: 410, height: 410 };
         this.two = new Two(params)
+    }
+
+    commit() {
+        const { Battleship } = this.props.drizzle;
+        const { accounts } = this.props.drizzleStatus;
+        var commitHash = '0x6fd05809f78fe572eb4fe5c73371d806c3eb14a125a3022df8840a78ccc11d8b';
+        Battleship.methods.commit(commitHash).send({
+            from: accounts[0]
+        }, (e, h) => {
+            if(e) {
+                console.log('Error Occured:', e);
+            } else {
+                console.log('Tx Successful:', h);
+            }
+        });
     }
 
     componentDidMount() {
@@ -62,12 +77,12 @@ class Game extends React.Component {
         var diff = (this.state.ship.orientation == 'h') ? 10 : 1;
 
         // Toggle ships
-        if (start in this.state.hashed_indices && this.state.hashed_indices[start] != '-') {
-            var change = (this.state.hashed_indices[start] == 'h') ? 1 : 10;
-            var old = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
+        if (start in this.state.board_orientation && this.state.board_orientation[start] != '-') {
+            var change = (this.state.board_orientation[start] == 'h') ? 1 : 10;
+            var old = (this.state.board_orientation[start] == 'h') ? 10 : 1;
             //TODO: check for bounding ship inside grid  
             for (var i = start + change; i < start + type * change && i < 100; i = i + change) {
-                if (i in this.state.hashed_indices) {
+                if (i in this.state.board_orientation) {
                     return positions;
                 }
             }
@@ -77,16 +92,16 @@ class Game extends React.Component {
                     if (positions[j]['i'] == i)
                         positions.splice(j, 1);
                 }
-                if(i != start) delete this.state.hashed_indices[i];
+                if(i != start) delete this.state.board_orientation[i];
             }
-            this.state.hashed_indices[start] = (this.state.hashed_indices[start] == 'h') ? 'v' : 'h';
-            diff = (this.state.hashed_indices[start] == 'h') ? 10 : 1;
+            this.state.board_orientation[start] = (this.state.board_orientation[start] == 'h') ? 'v' : 'h';
+            diff = (this.state.board_orientation[start] == 'h') ? 10 : 1;
         }
-        else if (this.state.hashed_indices[start] == '-') {
+        else if (this.state.board_orientation[start] == '-') {
             return positions;                 
         }
         else {
-            this.state.hashed_indices[start] = 'h';
+            this.state.board_orientation[start] = 'h';
         }
 
         
@@ -94,15 +109,15 @@ class Game extends React.Component {
         for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
             //TODO: check for bounding ship inside grid  
             // console.log(this.state.grid.findIndex(z => z.id == i))
-            if (i in this.state.hashed_indices) {
-                delete this.state.hashed_indices[start]
+            if (i in this.state.board_orientation) {
+                delete this.state.board_orientation[start]
                 return positions;
             }
         }
         
         for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
-            if (i == start) this.state.hashed_indices[i] = this.state.hashed_indices[start];
-            else this.state.hashed_indices[i] = '-';
+            if (i == start) this.state.board_orientation[i] = this.state.board_orientation[start];
+            else this.state.board_orientation[i] = '-';
             positions.push({ type, i });                
         }
         return positions;
