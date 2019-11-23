@@ -25,7 +25,12 @@ contract Battleship {
 
     }
 
-
+    /// @notice Event for returning the winner
+    /// @param player The winner of the game
+    event Winner(
+        address indexed addr,
+        uint8 player_index
+    );
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
     function deposit(uint _amount) public payable {
@@ -107,9 +112,9 @@ contract Battleship {
     }
 
 
-    function declare_winner(uint8 _winner) internal returns (uint8) {
-        // TODO: Emit Event to declare winner
-        return _winner;
+    function declare_winner(uint8 _winner) internal {
+        emit Winner(player_address[_winner], _winner);
+        return;
     }
 
 
