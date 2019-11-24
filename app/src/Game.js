@@ -84,10 +84,23 @@ class Game extends React.Component {
         var diff = (this.state.ship.orientation == 'h') ? 10 : 1;
 
         // Toggle ships
-        if (start in this.state.board_orientation && this.state.board_orientation[start] == 'h') {
+        if (start in this.state.board_orientation && this.state.board_orientation[start] != '-') {
             var change = (this.state.board_orientation[start] == 'h') ? 1 : 10;
             var old = (this.state.board_orientation[start] == 'h') ? 10 : 1;
-            //TODO: check for bounding ship inside grid  
+            
+            //Toggle can't be made diff type ship
+            for (var t = 0; t < positions.length; t++){
+                if (positions[t].type != type && positions[t].i == start)
+                    return positions;
+            }
+
+            // check for bounding ship inside grid
+            const last1 = start + (type - 1) * change;
+            if ((this.state.board_orientation[start] == 'v' && (last1 / 10) >= 10) || (this.state.board_orientation[start] == 'h' && ~~(last1 / 10) != ~~(start / 10))) {
+                return positions;
+            }
+
+            //overlapping positions
             for (var i = start + change; i < start + type * change && i < 100; i = i + change) {
                 if (i in this.state.board_orientation) {
                     return positions;
@@ -107,6 +120,7 @@ class Game extends React.Component {
             diff = (this.state.board_orientation[start] == 'h') ? 10 : 1;
         }
         else if (this.state.board_orientation[start] == '-') {
+            // cells alreay occupied
             return positions;                 
         }
             
@@ -136,7 +150,6 @@ class Game extends React.Component {
             
         // Check for overlapping
         for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
-            //TODO: check for bounding ship inside grid  
             if (i in this.state.board_orientation) {
                 delete this.state.board_orientation[start]
                 return positions;
@@ -145,12 +158,18 @@ class Game extends React.Component {
         let ind = 0;
         while (ind < positions.length && positions[ind]['type'] < type)
             ind += 1;
-        console.log(ind)
-        for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
-            if (i == start) this.state.board_orientation[i] = this.state.board_orientation[start];
-            else this.state.board_orientation[i] = '-';
-            positions.splice(ind, 0, { type, i });
-            ind += 1;
+
+        // Check for bounding ship inside grid
+        const last = start + (type - 1) * diff;
+        if ((this.state.board_orientation[start] == 'h' && (last / 10) < 10) || (this.state.board_orientation[start] == 'v' && ~~(last / 10) == ~~(start / 10))) {
+            // push new positions
+            for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
+                if (i == start) this.state.board_orientation[i] = this.state.board_orientation[start];
+                else this.state.board_orientation[i] = '-';
+                positions.splice(ind, 0, { type, i });
+                ind += 1;
+            }
+            return positions;
         }
     }
 
