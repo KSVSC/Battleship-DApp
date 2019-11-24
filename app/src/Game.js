@@ -24,12 +24,19 @@ class Game extends React.Component {
         this.two = new Two(params)
     }
 
-    commit() {
-        const { Battleship } = this.props.drizzle;
-        const { accounts } = this.props.drizzleStatus;
-        var commitHash = '0x6fd05809f78fe572eb4fe5c73371d806c3eb14a125a3022df8840a78ccc11d8b';
+    async commit() {
+        const { Battleship } = this.props.drizzle.contracts;
+        const { accounts } = this.props.drizzleState;
+        const { positions } = this.state;
+        console.log(positions)
+        console.log(Battleship);
+        var pos = Array(20).fill().map((_, i) => positions[i].i);
+        console.log(pos);
+        var nonce = 42;
+        var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
+        console.log(commitHash, 'commit hash');
         Battleship.methods.commit(commitHash).send({
-            from: accounts[0]
+            from: accounts[1]
         }, (e, h) => {
             if(e) {
                 console.log('Error Occured:', e);
@@ -77,7 +84,7 @@ class Game extends React.Component {
         var diff = (this.state.ship.orientation == 'h') ? 10 : 1;
 
         // Toggle ships
-        if (start in this.state.board_orientation && this.state.board_orientation[start] != '-') {
+        if (start in this.state.board_orientation && this.state.board_orientation[start] == 'h') {
             var change = (this.state.board_orientation[start] == 'h') ? 1 : 10;
             var old = (this.state.board_orientation[start] == 'h') ? 10 : 1;
             //TODO: check for bounding ship inside grid  
@@ -114,24 +121,36 @@ class Game extends React.Component {
             if (positions[t]['type'] == type)
                 var count = count + 1;
         }
-        if (count/type  >= 2) {
+        if (type == 1 && count / type >= 4) {
+            return positions;
+        }
+        if (type == 2 && count / type >= 3) {
+            return positions;
+        }
+        if (type == 3 && count / type >= 2) {
+            return positions;
+        }
+        if (type == 4 && count / type >= 1) {
             return positions;
         }
             
         // Check for overlapping
         for (var i = start + diff; i < start + type * diff && i < 100; i = i + diff) {
             //TODO: check for bounding ship inside grid  
-            // console.log(this.state.grid.findIndex(z => z.id == i))
             if (i in this.state.board_orientation) {
                 delete this.state.board_orientation[start]
                 return positions;
             }
         }
-        
+        let ind = 0;
+        while (ind < positions.length && positions[ind]['type'] < type)
+            ind += 1;
+        console.log(ind)
         for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
             if (i == start) this.state.board_orientation[i] = this.state.board_orientation[start];
             else this.state.board_orientation[i] = '-';
-            positions.push({ type, i });                
+            positions.splice(ind, 0, { type, i });
+            ind += 1;
         }
     }
 
@@ -188,6 +207,9 @@ class Game extends React.Component {
             </Button>
             <Button variant="outlined" onClick={() => this.setShip(1)}>
                 Submarine
+            </Button>
+            <Button variant="outlined" onClick={() => this.commit().then(x => console.log(x, 'yay'))}>
+                yellow Submarine
             </Button>
         <div ref={this.gameRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
         </>);
