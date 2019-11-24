@@ -166,7 +166,6 @@ contract Battleship {
             }
         }
     }
-    // TODO: Remove this function
     function generate_commitment(uint8[20] memory _positions, uint256 _nonce) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_positions, _nonce));
     }

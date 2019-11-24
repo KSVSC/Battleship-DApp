@@ -1,7 +1,7 @@
 var Battleship = artifacts.require("Battleship");
 const truffleAssert = require('truffle-assertions');
 let accounts, battleship;
-contract('Test', () => {
+contract('EdgeCasesTest', () => {
     beforeEach(async () => {
         // get the accounts
         accounts = await web3.eth.getAccounts();
@@ -15,8 +15,9 @@ contract('Test', () => {
             assert(err, "Incorrect Amount, specified amount does not match transaction value");
         }
     });
-    it('GameRun', async () => {
+    it('Second attempt to commit', async () => {
         positions = [[1, 9, 21, 31, 98, 99, 68, 69, 58, 59, 2, 3, 4, 10, 20, 30, 40, 41, 42, 43], [1, 9, 21, 31, 98, 99, 68, 69, 58, 59, 2, 3, 4, 10, 20, 30, 40, 41, 42, 43]];
+        pos = [1, 9, 23, 31, 98, 99, 68, 69, 58, 59, 2, 3, 4, 10, 20, 30, 40, 41, 42, 43];
         nonce = [1234, 5678];
     
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,13 +29,16 @@ contract('Test', () => {
         catch (err) {
             assert(err, "You cannot commit twice");
         }
+    });
+    it('Cannot make move before second player commit', async () => {
         try {
             await battleship.make_move("1", { from: accounts[1] });
         }
         catch (err) {
             assert(err, "Plese wait!.Other Player still not commited");
         }
-    
+    });
+    it('Only two players are allowed', async () => {
         await battleship.commit("0xe716e228766c7d437aab1aa47d72d72908e72977952140556d031673a83389a4", { from: accounts[2] });
     
         try {
@@ -43,8 +47,10 @@ contract('Test', () => {
         catch (err) {
             assert(err, "Two Players commited already");
         }
+    });
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    it('Register to make_move', async () => {
         await battleship.make_move("43", { from: accounts[1] });
         await battleship.reply_move("4", { from: accounts[2] });
 
@@ -54,13 +60,16 @@ contract('Test', () => {
         catch (err) {
             assert(err, "You are not registered")
         }
+    });
+    it('Turn alter', async () => {
         try {
             await battleship.make_move("78", { from: accounts[1] });
         }
         catch (err) {
             assert(err, "Out of turn")
         }
-
+    });
+    it('Cannot make two moves in a Turn', async () => {
         await battleship.make_move("43", { from: accounts[2] });
 
         try {
@@ -69,12 +78,16 @@ contract('Test', () => {
         catch (err) {
             assert(err, "Move already made")
         }
+    });
+    it('Cannot make two replies in a Turn', async () => {
         try {
-            await battleship.reply_move("4", { from: accounts[2] });            
+            await battleship.reply_move("4", { from: accounts[2] });
         }
         catch (err) {
             assert(err, "Reply already made")
         }
+    });
+    it('Reveal only after game end', async () => {
         await battleship.reply_move("4", { from: accounts[1] });
 
         try {
@@ -83,7 +96,8 @@ contract('Test', () => {
         catch (err) {
             assert(err, "Game not yet over");
         }
-
+    });
+    it('Cannot make moves after max score reached', async () => {
         for (var i = 0; i < 19; ++i) {
             for (var j = 0; j < 2; ++j) {
                 if (j == 1 && i == 18) {
@@ -111,22 +125,25 @@ contract('Test', () => {
             assert(err, "Game Over");
         }
     });
-
-    it("Reveal", async () => {
-        let a = await battleship.reveal(positions[1], nonce[0], { from: accounts[1] });
-        let winner = await battleship.reveal(positions[1], nonce[1], { from: accounts[2] });
-        // let x = await new Promise((resolve, reject) => battleship.events.Winner((e, r) => {
-        //     console.log(e, r);
-        //     resolve(r);
-        // }));
-        console.log(winner.logs);
-        truffleAssert.eventEmitted(winner, 'Winner', (x) => {
-            return winner.addr == accounts[1];
+    it("when reveal wrong opponent win", async () => {
+        let a = await battleship.reveal(pos, nonce[0], { from: accounts[1] });
+        await battleship.reveal(positions[1], nonce[1], { from: accounts[2] });
+        truffleAssert.eventEmitted(a, 'Winner', (x) => {
+            return x.addr == accounts[2];
         });
-        // assert.equal(winner.addr, accounts[1], "Player2 WIN")
     });
-        // for (var i = 0; i < 2; ++i) {
-        //     await battleship.reveal(positions[i], nonce[i]);
-        // }
-        // assert(true);
+    it("Player1 wins", async () => {
+        await battleship.reveal(positions[1], nonce[0], { from: accounts[1] });
+        let winner = await battleship.reveal(pos, nonce[1], { from: accounts[2] });
+        truffleAssert.eventEmitted(winner, 'Winner', (x) => {
+            return x.addr == accounts[1];
+        });
+    });
+    it("Player1 with max score wins when both are honest", async () => {
+        await battleship.reveal(positions[0], nonce[0], { from: accounts[1] });
+        let a = await battleship.reveal(positions[1], nonce[1], { from: accounts[2] });
+        truffleAssert.eventEmitted(a, 'Winner', (x) => {
+            return x.addr == accounts[1];
+        });
+    });
 });
