@@ -3,12 +3,6 @@ var Battleship = artifacts.require("Battleship");
 contract('Initial Test', function (accounts) {
     const ERROR = 'VM Exception while processing transaction: revert'
 
-    // function sleep(miliseconds) {
-    //     var currentTime = new Date().getTime();
-    //     while (currentTime + miliseconds >= new Date().getTime()) {
-    //     }
-    // }
-
     ////////////////////Admin Deploys the Game//////////////////////////
     it("Amount should match transaction value", () => {
         return Battleship.deployed()
@@ -63,15 +57,3 @@ contract('Initial Test', function (accounts) {
     });
 
 });
-//     ////////////////////Register into the Game//////////////////////////
-//     it("Player2 should be able to register", () => {
-//         return SPSLS.deployed()
-//             .then(async function (instance) {
-//                 await instance.register_as_player({ from: accounts[1], value: web3.utils.toWei("5", "ether") });
-//                 await instance.register_as_player({ from: accounts[2], value: web3.utils.toWei("5", "ether") });
-//                 return instance.current_number_of_players.call();
-//             }).then(function (current_number_of_players) {
-//                 assert.equal(current_number_of_players.valueOf(), 2, "Player2 registered");
-//             });
-//     });
- 
