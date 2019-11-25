@@ -12,6 +12,7 @@ contract Battleship {
     uint8[2] score;
     /// @dev Stores the commitment for the 2 players in phase 1
     bytes32[2] commitment;
+    string public stored_string;
     address[2] player_address;
     uint8[100][2] public board_original;
     uint8 first = 2;
@@ -54,7 +55,6 @@ contract Battleship {
         commitment[1] = _commit;
         return;
     }
-
 
     function make_move(uint8 _position) public returns (string memory) {
         require(player_address[1] != address(0), "Plese wait!.Other Player still not commited");
