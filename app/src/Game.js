@@ -31,13 +31,11 @@ class Game extends React.Component {
         console.log(positions)
         console.log(Battleship);
         var pos = Array(20).fill().map((_, i) => positions[i].i);
-        console.log(pos);
+        // TODO: Randomize the nonce
         var nonce = 42;
-        // var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
-        var commitHash = '0x674326e0b84c4e1f943cd8cdf1988f78f4ec855458356b52f2d796d421d64866';
-        console.log(commitHash, 'commit hash');
+        var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
         Battleship.methods.commit(commitHash).send({
-            from: accounts[1]
+            from: accounts[0]
         }, (e, h) => {
             if(e) {
                 console.log('Error Occured:', e);
