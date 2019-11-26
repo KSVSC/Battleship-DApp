@@ -1,7 +1,7 @@
 import React from 'react';
 import Two from 'two.js';
 import Button from '@material-ui/core/Button';
-import {COLOR_SKY, COLOR_SEA, COLOR_BROWN, COLOR_YELLOW} from './Colors';
+import {COLOR_SKY, COLOR_SEA, COLOR_BROWN, COLOR_YELLOW, SHIP_COLORS} from './Colors';
 class Game extends React.Component {
     constructor(props) {
         super(props);
@@ -14,8 +14,6 @@ class Game extends React.Component {
             },
             self_grid: undefined,
             other_grid: undefined,
-            selfnum_grid: undefined,
-            othernum_grid: undefined,
             stage: 'place',
             positions: [],
             hit: [],
@@ -34,6 +32,8 @@ class Game extends React.Component {
         const { Battleship } = this.props.drizzle.contracts;
         const { accounts } = this.props.drizzleState;
         const { positions } = this.state;
+        console.log(positions)
+        console.log(Battleship);
         var pos = Array(20).fill().map((_, i) => positions[i].i);
         // TODO: Randomize the nonce
         var nonce = 42;
@@ -52,6 +52,16 @@ class Game extends React.Component {
                 resolve(true);
             }
         }));
+        const { self_grid } = this.state;
+        self_grid.forEach((z, idx) => {
+            var x = this.state.positions.find(a => a.i == idx);
+            if(x) {
+                z.fill = SHIP_COLORS[x.type];
+            } else {
+                z.fill = COLOR_SKY;
+            }
+        });
+        this.setState({self_grid});
         return output;
     }
 
@@ -68,25 +78,15 @@ class Game extends React.Component {
         rect.opacity = 0.75;
         rect.noStroke();
         var self_grid = new Array(100);
-        var selfnum_grid = new Array(100);
-        var othernum_grid = new Array(100);
-        var styles = {
-            family: 'proxima-nova, sans-serif',
-            size: 16,
-            leading: 25,
-            weight: 500
-        };
+
         for(var i = 0; i < 10; ++i) {
             for(var j = 0; j < 10; ++j) {
                 var rect = this.self_board.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
-                var text = this.self_board.makeText('0', 22.75 + 40.5 * i, 22.75 + 40.5 * j, styles);
-                text.fill = '#F8B195';
-                text.visible = false;
+
                 rect.fill = COLOR_SKY;
                 rect.opacity = 0.75;
                 rect.noStroke();
-                self_grid[10 * i + j] = rect;
-                selfnum_grid[10 * i + j] = text;
+                self_grid[10*i+j] = rect;
             }
         }
 
@@ -100,21 +100,19 @@ class Game extends React.Component {
         for (var i = 0; i < 10; ++i) {
             for (var j = 0; j < 10; ++j) {
                 var rect2 = this.other_board.makeRoundedRectangle(22.75 + 40.5 * i, 22.75 + 40.5 * j, 35.5, 35.5, 5);
-                var text2 = this.other_board.makeText('0', 22.75 + 40.5 * i, 22.75 + 40.5 * j, styles);
-                text2.fill = '#F8B195';
-                text2.visible = false;
+
                 rect2.fill = COLOR_SKY;
                 rect2.opacity = 0.75;
                 rect2.noStroke();
                 other_grid[10 * i + j] = rect2;
-                othernum_grid[10 * i + j] = text2;
             }
         }
         // Don't forget to tell two to render everything
         // to the screen
         this.self_board.update();
+        this.setState({ self_grid });
         this.other_board.update();
-        this.setState({ self_grid, selfnum_grid, other_grid, othernum_grid });
+        this.setState({ other_grid });
     }
 
     componentWillUpdate() {
@@ -258,7 +256,7 @@ class Game extends React.Component {
             if (start != -1) {
                 this.makeMove(start).then(x => {
                     if (x) {
-                        hit.push(start);
+                        hit.push({i: start, type: 6});
                     }
                 });
             }
@@ -273,58 +271,50 @@ class Game extends React.Component {
     handleMouseMove = e => {
         var x = e.clientX;
         var y = e.clientY;
-        if (this.state.stage == 'place') {
-            var { self_grid, selfnum_grid } = this.state;
+        if(this.state.stage == 'place') {
+            var self_grid = this.state.self_grid; 
             var start = self_grid.findIndex(z => z.id == e.target.id);
-            if (start != -1) {
+            if(start != -1) {
                 const type = this.state.ship.type;
                 const diff = (this.state.ship.orientation == 'h') ? 10 : 1;
-                self_grid.forEach((z, idx) => z.fill = (!this.state.positions.find(a => a.i == idx)) ? COLOR_SKY : COLOR_BROWN);
-                selfnum_grid.forEach((z, idx) => {
-                    const x = this.state.positions.find(a => a.i == idx);
-                    if (x) {
-                        z.visible = true;
-                        z.value = x.type;
+                self_grid.forEach((z, idx) => {
+                    x = this.state.positions.find(a => a.i == idx);
+                    if(x) {
+                        z.fill = SHIP_COLORS[x.type];
                     } else {
-                        z.visible = false;
+                        z.fill = COLOR_SKY;
                     }
                 });
-                for (var i = start; i < start + type * diff && i < 100; i = i + diff) {
+                for(var i = start; i < start + type*diff && i < 100; i=i+diff) {
                     self_grid[i].fill = COLOR_BROWN;
-                    selfnum_grid[i].value = type;
-                    selfnum_grid[i].visible = true;
                 }
             }
         }
 
         if (this.state.stage == 'play') {
-            var { othernum_grid, other_grid } = this.state;
+            var other_grid = this.state.other_grid;
             var start = other_grid.findIndex(z => z.id == e.target.id);
             if (start != -1) {
-                other_grid.forEach((z, idx) => z.fill = (!this.state.hit.find(a => a == idx)) ? COLOR_SKY : COLOR_BROWN);
-                othernum_grid.forEach((z, idx) => {
-                    const x = this.state.hit.find(a => a.i == idx);
-                    if (x) {
-                        z.visible = true;
-                        z.value = x.type;
+                other_grid.forEach((z, idx) => {
+                    x = this.state.hit.find(a => a.i == idx);
+                    if(x) {
+                        z.fill = SHIP_COLORS[x.type];
                     } else {
-                        z.visible = false;
+                        z.fill = COLOR_SKY;
                     }
                 });
                 other_grid[start].fill = COLOR_YELLOW;
-                othernum_grid[start].visible = true;
             }
-            this.setState({ cursor: { x, y } });
         }
+        this.setState({ cursor: { x, y } });
     }
-    
+
     setShip = type => this.setState({
         ship: {
             type,
             orientation: 'h'
         }
     });
-
     render() {
         return (<>
             <Button variant="outlined" onClick={() => this.setShip(4)}>
