@@ -28,11 +28,33 @@ contract Battleship {
     }
 
     /// @notice Event for returning the winner
+    /// @param addr Address of the winning player
+    /// @param player_index Player who one
     event Winner(
         address indexed addr,
-        uint8 player_index,
-        uint8 temp
+        uint8 player_index
     );
+
+    /// @notice Event for declaring that a move has been made
+    /// @param move_index Index of move
+    /// @param player_index Player which made the move
+    /// @param move Position of the board played
+    event MadeMove(
+        uint8 indexed move_index,
+        uint8 player_index,
+        uint8 move
+    );
+
+    /// @notice Event for declaring that a reply has been made
+    /// @param reply_index Index of the reply
+    /// @param player_index The player for whom reply is given
+    /// @param score Type of ship hit
+    event ReplyMove(
+        uint8 indexed reply_index,
+        uint8 player_index,
+        uint8 score
+    );
+
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
     function deposit(uint _amount) public payable {
@@ -56,7 +78,7 @@ contract Battleship {
         return;
     }
 
-    function make_move(uint8 _position) public returns (string memory) {
+    function make_move(uint8 _position) public {
         require(player_address[1] != address(0), "Plese wait!.Other Player still not commited");
         require(player_address[0] == msg.sender || player_address[1] == msg.sender, "You are not registered");
         require(score[0] < 20 && score[1] < 20, "Game Over");
@@ -69,12 +91,11 @@ contract Battleship {
         board_intermediate[player][_position] = true;
         require(move_log[player][move_idx[player]] == 100, "Move already made");
         move_log[player][move_idx[player]] = _position;
-        // TODO: Emit event that move has been made
-        return "made move";
+        emit MadeMove(move_idx[player], player, _position);
     }
 
 
-    function reply_move(uint8 _reply) public returns (string memory) {
+    function reply_move(uint8 _reply) public {
         /// @dev The player for whom reply is given
         uint8 player = (player_address[0] == msg.sender) ? 1 : 0; // TODO: Fix bug allowing multiple participating addresses
         require(move_log[player][move_idx[player]] != 100, "Move not made");
@@ -85,8 +106,7 @@ contract Battleship {
         if(score[player] == 20) {
             end_game();
         }
-        // TODO: Emit event that reply has been made
-        return "made reply";
+        emit ReplyMove(move_idx[player], player, _reply);
     }
 
 
@@ -113,8 +133,8 @@ contract Battleship {
     }
 
 
-    function declare_winner(uint8 _winner, uint8 temp) internal {
-        emit Winner(player_address[_winner], _winner, temp);
+    function declare_winner(uint8 _winner) internal {
+        emit Winner(player_address[_winner], _winner);
         return;
     }
 
@@ -130,42 +150,43 @@ contract Battleship {
             board_original[player][i] = 0;
         }
         if(test_hash != commitment[player]) {
-            declare_winner(1-player, 81);
+            declare_winner(1-player);
         }
         for(uint8 i = 0; i < 4; ++i) {
             if(!place_ship(_positions, i, 1, player)) {
-                declare_winner(1-player, i);
+                declare_winner(1-player);
             }
         }
         for(uint8 i = 4; i < 10; i = i+2) {
             if(!place_ship(_positions, i, 2,player)) {
-                declare_winner(1-player, i);
+                declare_winner(1-player);
             }
         }
         for(uint8 i = 10; i < 16; i = i+3) {
             if(!place_ship(_positions, i, 3,player)) {
-                declare_winner(1-player, i);
+                declare_winner(1-player);
             }
         }
         for(uint8 i = 16; i < 20; i = i+4) {
             if(!place_ship(_positions, i, 4, player)) {
-                declare_winner(1-player, i);
+                declare_winner(1-player);
             }
         }
         for(uint8 i = 0; i < move_idx[1-player]; ++i) {
             if(board_original[player][move_log[1-player][i]] != reply_log[1-player][i]) {
-                declare_winner(1-player, board_original[player][move_log[1-player][i]]+100);
+                declare_winner(1-player);
             }
         }
         commitment[player] = 0x0;
         if(commitment[0] == 0x0 && commitment[1] == 0x0) {
             if(score[0] == 20) {
-                declare_winner(0, 64);
+                declare_winner(0);
             } else {
-                declare_winner(1,64);
+                declare_winner(1);
             }
         }
     }
+
     function generate_commitment(uint8[20] memory _positions, uint256 _nonce) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_positions, _nonce));
     }
