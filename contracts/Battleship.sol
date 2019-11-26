@@ -46,11 +46,11 @@ contract Battleship {
     );
 
     /// @notice Event for declaring that a reply has been made
-    /// @param reply_index Index of the reply
+    /// @param position Location of the move
     /// @param player_index The player for whom reply is given
     /// @param score Type of ship hit
     event ReplyMove(
-        uint8 indexed reply_index,
+        uint8 indexed position,
         uint8 player_index,
         uint8 score
     );
@@ -114,7 +114,7 @@ contract Battleship {
         if(score[player] == 20) {
             end_game();
         }
-        emit ReplyMove(move_idx[player], player, _reply);
+        emit ReplyMove(move_log[player][move_idx[player]-1], player, _reply);
     }
 
 
