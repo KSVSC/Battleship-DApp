@@ -1,7 +1,7 @@
 import React from 'react';
 import Two from 'two.js';
 import Button from '@material-ui/core/Button';
-import {COLOR_SKY, COLOR_SEA, COLOR_BROWN} from './Colors';
+import {COLOR_SKY, COLOR_SEA, COLOR_BROWN, COLOR_YELLOW} from './Colors';
 class Game extends React.Component {
     constructor(props) {
         super(props);
@@ -12,10 +12,11 @@ class Game extends React.Component {
                 x: 0,
                 y: 0    
             },
-            grid: undefined,
-            grid1: undefined,
+            self_grid: undefined,
+            other_grid: undefined,
             stage: 'place',
             positions: [],
+            hit: [],
             board_orientation: {},
             ship: {
                 type: 0,
@@ -37,15 +38,21 @@ class Game extends React.Component {
         // TODO: Randomize the nonce
         var nonce = 42;
         var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
-        Battleship.methods.commit(commitHash).send({
+        var output = await new Promise(resolve => Battleship.methods.commit(commitHash).send({
             from: accounts[0]
         }, (e, h) => {
             if(e) {
                 console.log('Error Occured:', e);
+                resolve(false);
             } else {
                 console.log('Tx Successful:', h);
+                this.setState({
+                    stage: 'play'
+                });
+                resolve(true);
             }
-        });
+        }));
+        return output;
     }
 
     componentDidMount() {
@@ -60,7 +67,7 @@ class Game extends React.Component {
         rect.fill = COLOR_SEA;
         rect.opacity = 0.75;
         rect.noStroke();
-        var grid = new Array(100);
+        var self_grid = new Array(100);
 
         for(var i = 0; i < 10; ++i) {
             for(var j = 0; j < 10; ++j) {
@@ -69,16 +76,16 @@ class Game extends React.Component {
                 rect.fill = COLOR_SKY;
                 rect.opacity = 0.75;
                 rect.noStroke();
-                grid[10*i+j] = rect;
+                self_grid[10*i+j] = rect;
             }
         }
 
         var rect2 = this.other_board.makeRoundedRectangle(205, 205, 410, 410, 5);
 
-        rect2.fill = COLOR_BROWN;
+        rect2.fill = COLOR_SEA;
         rect2.opacity = 0.75;
         rect2.noStroke();
-        var grid1 = new Array(100);
+        var other_grid = new Array(100);
 
         for (var i = 0; i < 10; ++i) {
             for (var j = 0; j < 10; ++j) {
@@ -87,20 +94,38 @@ class Game extends React.Component {
                 rect2.fill = COLOR_SKY;
                 rect2.opacity = 0.75;
                 rect2.noStroke();
-                grid1[10 * i + j] = rect2;
+                other_grid[10 * i + j] = rect2;
             }
         }
         // Don't forget to tell two to render everything
         // to the screen
         this.self_board.update();
-        this.setState({ grid });
+        this.setState({ self_grid });
         this.other_board.update();
-        this.setState({ grid1 });
+        this.setState({ other_grid });
     }
 
     componentWillUpdate() {
         this.self_board.update();
         this.other_board.update();
+    }
+
+    makeMove = async position => {
+        const { Battleship } = this.props.drizzle.contracts;
+        const { accounts } = this.props.drizzleState;
+
+        var output = await new Promise(resolve => Battleship.methods.make_move(position).send({ from: accounts[0] },
+            (e, h) => {
+                if (e) {
+                    console.log('Error Occured:', e);
+                    resolve(false);
+                } else {
+                    console.log('Tx Successful:', h);
+                    resolve(true);
+                }
+            }
+        ));
+        return output;
     }
 
     placeShip = start => {
@@ -134,7 +159,7 @@ class Game extends React.Component {
 
             //Removing old positions
             for (var i = start; i < start + type * old && i < 100; i = i + old) {
-                this.state.grid[i].fill = COLOR_SKY;
+                this.state.self_grid[i].fill = COLOR_SKY;
                 for (var j = 0; j < positions.length; j++) {
                     if (positions[j]['i'] == i)
                         positions.splice(j, 1);
@@ -199,18 +224,38 @@ class Game extends React.Component {
     }
 
     handleMouseDown = e => {
+        console.log(this.state);
         var x = e.clientX;
         var y = e.clientY;
         var positions = this.state.positions;
+        var hit = this.state.hit;
         if(this.state.stage == 'place') {
-            var start = this.state.grid.findIndex(z => z.id == e.target.id);
+            var start = this.state.self_grid.findIndex(z => z.id == e.target.id);
             if(start != -1) {
                 positions = this.placeShip(start) || this.state.positions;
             }
         }
+        
+        if (this.state.stage == 'play') {
+            var start = this.state.other_grid.findIndex(z => z.id == e.target.id);
+            for (var t = 0; t < hit.length; t++) {
+                if (hit[t] == start) {
+                    start = -1;
+                    break;
+                }
+            }
+            if (start != -1) {
+                this.makeMove(start).then(x => {
+                    if (x) {
+                        hit.push(start);
+                    }
+                });
+            }
+        }
         this.setState({
-          cursor: { x, y },
-          positions
+            cursor: { x, y },
+            positions,
+            hit
         });
     }
 
@@ -218,18 +263,27 @@ class Game extends React.Component {
         var x = e.clientX;
         var y = e.clientY;
         if(this.state.stage == 'place') {
-            var grid = this.state.grid; 
-            var start = grid.findIndex(z => z.id == e.target.id);
+            var self_grid = this.state.self_grid; 
+            var start = self_grid.findIndex(z => z.id == e.target.id);
             if(start != -1) {
                 const type = this.state.ship.type;
                 const diff = (this.state.ship.orientation == 'h') ? 10 : 1;
-                grid.forEach((z, idx) => z.fill = (!this.state.positions.find(a => a.i == idx)) ? COLOR_SKY : COLOR_BROWN);
+                self_grid.forEach((z, idx) => z.fill = (!this.state.positions.find(a => a.i == idx)) ? COLOR_SKY : COLOR_BROWN);
                 for(var i = start; i < start + type*diff && i < 100; i=i+diff) {
-                    grid[i].fill = COLOR_BROWN;
+                    self_grid[i].fill = COLOR_BROWN;
                 }
             }
         }
-        this.setState({cursor: { x, y }});
+
+        if (this.state.stage == 'play') {
+            var other_grid = this.state.other_grid;
+            var start = other_grid.findIndex(z => z.id == e.target.id);
+            if (start != -1) {
+                other_grid.forEach((z, idx) => z.fill = (!this.state.hit.find(a => a == idx)) ? COLOR_SKY : COLOR_BROWN);
+                other_grid[start].fill = COLOR_YELLOW;
+            }
+        }
+        this.setState({ cursor: { x, y } });
     }
 
     setShip = type => this.setState({
