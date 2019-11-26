@@ -55,6 +55,12 @@ contract Battleship {
         uint8 score
     );
 
+    /// @notice Event for declaring that a player has committed
+    /// @param player The player which committed
+    event Commit(
+        uint8 player
+    );
+
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
     function deposit(uint _amount) public payable {
@@ -69,12 +75,14 @@ contract Battleship {
         if(player_address[0] == address(0)) {
             player_address[0] = msg.sender;
             commitment[0] = _commit;
+            emit Commit(0);
             return;
         }
         require(player_address[0] != msg.sender, "You cannot commit twice");
         require(player_address[1] == address(0), "Two Players commited already");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
+        emit Commit(1);
         return;
     }
 
