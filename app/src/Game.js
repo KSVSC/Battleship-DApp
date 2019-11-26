@@ -5,13 +5,15 @@ import {COLOR_SKY, COLOR_SEA, COLOR_BROWN} from './Colors';
 class Game extends React.Component {
     constructor(props) {
         super(props);
-        this.gameRef = React.createRef();
+        this.selfRef = React.createRef();
+        this.otherRef = React.createRef();
         this.state = {
             cursor: {
                 x: 0,
                 y: 0    
             },
             grid: undefined,
+            grid1: undefined,
             stage: 'place',
             positions: [],
             board_orientation: {},
@@ -21,7 +23,8 @@ class Game extends React.Component {
             }
         };
         var params = { width: 410, height: 410 };
-        this.two = new Two(params)
+        this.self_board = new Two(params)
+        this.other_board = new Two(params)
     }
 
     async commit() {
@@ -47,10 +50,12 @@ class Game extends React.Component {
 
     componentDidMount() {
         // Make an instance of two and place it on the page.
-        var elem = this.gameRef.current;
-        this.two.appendTo(elem);
+        var elem = this.selfRef.current;
+        this.self_board.appendTo(elem);
+        elem = this.otherRef.current;
+        this.other_board.appendTo(elem);
         // GAME Code goes here !!
-        var rect = this.two.makeRoundedRectangle(205, 205, 410, 410, 5);
+        var rect = this.self_board.makeRoundedRectangle(205, 205, 410, 410, 5);
 
         rect.fill = COLOR_SEA;
         rect.opacity = 0.75;
@@ -59,7 +64,7 @@ class Game extends React.Component {
 
         for(var i = 0; i < 10; ++i) {
             for(var j = 0; j < 10; ++j) {
-                var rect = this.two.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
+                var rect = this.self_board.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
 
                 rect.fill = COLOR_SKY;
                 rect.opacity = 0.75;
@@ -67,14 +72,35 @@ class Game extends React.Component {
                 grid[10*i+j] = rect;
             }
         }
+
+        var rect2 = this.other_board.makeRoundedRectangle(205, 205, 410, 410, 5);
+
+        rect2.fill = COLOR_BROWN;
+        rect2.opacity = 0.75;
+        rect2.noStroke();
+        var grid1 = new Array(100);
+
+        for (var i = 0; i < 10; ++i) {
+            for (var j = 0; j < 10; ++j) {
+                var rect2 = this.other_board.makeRoundedRectangle(22.75 + 40.5 * i, 22.75 + 40.5 * j, 35.5, 35.5, 5);
+
+                rect2.fill = COLOR_SKY;
+                rect2.opacity = 0.75;
+                rect2.noStroke();
+                grid1[10 * i + j] = rect2;
+            }
+        }
         // Don't forget to tell two to render everything
         // to the screen
-        this.two.update();
-        this.setState({grid});
+        this.self_board.update();
+        this.setState({ grid });
+        this.other_board.update();
+        this.setState({ grid1 });
     }
 
     componentWillUpdate() {
-        this.two.update();
+        this.self_board.update();
+        this.other_board.update();
     }
 
     placeShip = start => {
@@ -229,7 +255,10 @@ class Game extends React.Component {
             <Button variant="outlined" onClick={() => this.commit().then(x => console.log(x, 'yay'))}>
                 yellow Submarine
             </Button>
-        <div ref={this.gameRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
+            <div>
+                <div ref={this.selfRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
+                <div ref={this.otherRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
+            </div>
         </>);
     }
 }
