@@ -54,7 +54,8 @@ class Game extends React.Component {
               this.setState({me: eventObj.player, play: eventObj.player == 0});
               subscribe.unsubscribe();
             }
-          });var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
+          });
+        var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
         
         var output = await new Promise(resolve => Battleship.methods.commit(commitHash).send({
             from: accounts[0]
@@ -156,6 +157,7 @@ class Game extends React.Component {
                     resolve(false);
                 } else {
                     console.log('Tx Successful:', h);
+                    this.setState({play: false});
                     resolve(true);
                 }
             }
@@ -317,7 +319,7 @@ class Game extends React.Component {
             }
         }
         
-        if (this.state.stage == 'play') {
+        if (this.state.stage == 'play' && this.state.play) {
             var start = this.state.other_grid.findIndex(z => z.id == e.target.id);
             for (var t = 0; t < hit.length; t++) {
                 if (hit[t] == start) {
