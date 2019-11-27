@@ -52,6 +52,32 @@ class Game extends React.Component {
                 result.topics.slice(1)
               )
               this.setState({me: eventObj.player, play: eventObj.player == 0});
+              if(eventObj.player == 1) {
+              eventJsonInterface = web3.utils._.find(
+                Battleship._jsonInterface,
+                o => o.name === 'MadeMove' && o.type === 'event',
+                )
+                const subscription = web3.eth.subscribe('logs', {
+                    address: Battleship.options.address,
+                    topics: [eventJsonInterface.signature]
+                    }, (error, result, subscribe) => {
+                        if (!error) {
+                          const eventObj = web3.eth.abi.decodeLog(
+                            eventJsonInterface.inputs,
+                            result.data,
+                            result.topics.slice(1)
+                          )
+                          const x = this.state.positions.find(z => z.i == eventObj.move);
+                          const score = x ? x.type : 0;
+                          Battleship.methods.reply_move(score).send({from: accounts[0]}, (e,h) => {
+                              if(!e) {
+                                  this.setState({play: true});
+                              }
+                          });
+                          subscribe.unsubscribe();
+                        }
+                      });
+                    }
               subscribe.unsubscribe();
             }
           });
