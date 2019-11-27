@@ -37,11 +37,11 @@ class Game extends React.Component {
         var pos = Array(20).fill().map((_, i) => positions[i].i);
         // TODO: Randomize the nonce
         var nonce = 42;
-        const eventJsonInterface = web3.utils._.find(
+        var eventJsonInterface = web3.utils._.find(
             Battleship._jsonInterface,
             o => o.name === 'Commit' && o.type === 'event',
           )
-        const subscription = web3.eth.subscribe('logs', {
+        web3.eth.subscribe('logs', {
             address: Battleship.options.address,
             topics: [eventJsonInterface.signature]
           }, (error, result, subscribe) => {
@@ -57,7 +57,7 @@ class Game extends React.Component {
                 Battleship._jsonInterface,
                 o => o.name === 'MadeMove' && o.type === 'event',
                 )
-                const subscription = web3.eth.subscribe('logs', {
+                web3.eth.subscribe('logs', {
                     address: Battleship.options.address,
                     topics: [eventJsonInterface.signature]
                     }, (error, result, subscribe) => {
