@@ -12,8 +12,7 @@ class Game extends React.Component {
                 x: 0,
                 y: 0    
             },
-            me: -1,
-            reply: false,
+            play: false,
             self_grid: undefined,
             other_grid: undefined,
             stage: 'place',
@@ -38,7 +37,6 @@ class Game extends React.Component {
         var pos = Array(20).fill().map((_, i) => positions[i].i);
         // TODO: Randomize the nonce
         var nonce = 42;
-        var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
         const eventJsonInterface = web3.utils._.find(
             Battleship._jsonInterface,
             o => o.name === 'Commit' && o.type === 'event',
@@ -53,10 +51,11 @@ class Game extends React.Component {
                 result.data,
                 result.topics.slice(1)
               )
-              this.setState({me: eventObj.player, reply: eventObj.player == 1});
+              this.setState({me: eventObj.player, play: eventObj.player == 0});
               subscribe.unsubscribe();
             }
-          });
+          });var commitHash = await Battleship.methods.generate_commitment(pos, nonce).call();
+        
         var output = await new Promise(resolve => Battleship.methods.commit(commitHash).send({
             from: accounts[0]
         }, (e, h) => {
@@ -137,10 +136,35 @@ class Game extends React.Component {
     componentWillUpdate() {
         this.self_board.update();
         this.other_board.update();
-        if(this.state.reply) {
+        if(!this.state.play) {
             const { Battleship } = this.props.drizzle.contracts;
             const { accounts } = this.props.drizzleState;
-            
+            const { positions } = this.state;
+            const { web3 } = this.props.drizzle;
+            const eventJsonInterface = web3.utils._.find(
+                Battleship._jsonInterface,
+                o => o.name === 'MadeMove' && o.type === 'event',
+              )
+            const subscription = web3.eth.subscribe('logs', {
+                address: Battleship.options.address,
+                topics: [eventJsonInterface.signature]
+              }, (error, result, subscribe) => {
+                if (!error) {
+                  const eventObj = web3.eth.abi.decodeLog(
+                    eventJsonInterface.inputs,
+                    result.data,
+                    result.topics.slice(1)
+                  )
+                  const x = positions.find(z => z.i == eventObj.move);
+                  const score = x ? x.type : 0;
+                  Battleship.methods.reply_move(score).send({from: accounts[0]}, (e,h) => {
+                      if(!e) {
+                          this.setState({play: true});
+                      }
+                  });
+                  subscribe.unsubscribe();
+                }
+              });
         }
     }
 
@@ -367,7 +391,7 @@ class Game extends React.Component {
             }
         }
 
-        if (this.state.stage == 'play') {
+        if (this.state.stage == 'play' && this.state.play) {
             var other_grid = this.state.other_grid;
             var start = other_grid.findIndex(z => z.id == e.target.id);
             if (start != -1) {
