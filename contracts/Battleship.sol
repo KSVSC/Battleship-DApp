@@ -57,9 +57,14 @@ contract Battleship {
 
     /// @notice Event for declaring that a player has committed
     /// @param player The player which committed
+    /// @param addr The address of the player which committed
     event Commit(
-        uint8 player
+        uint8 player,
+        address addr
     );
+
+    /// @notice Event declaring that the game has ended
+    event GameOver();
 
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
@@ -75,14 +80,14 @@ contract Battleship {
         if(player_address[0] == address(0)) {
             player_address[0] = msg.sender;
             commitment[0] = _commit;
-            emit Commit(0);
+            emit Commit(0, msg.sender);
             return;
         }
         require(player_address[0] != msg.sender, "You cannot commit twice");
         require(player_address[1] == address(0), "Two Players commited already");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
-        emit Commit(1);
+        emit Commit(1, msg.sender);
         return;
     }
 
@@ -118,9 +123,8 @@ contract Battleship {
     }
 
 
-    function end_game() public returns (string memory) {
-        // TODO: Emit event that GAME OVER
-        return "game over";
+    function end_game() public {
+        emit GameOver();
     }
 
 
