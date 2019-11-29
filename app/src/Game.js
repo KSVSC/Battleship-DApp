@@ -2,6 +2,8 @@ import React from 'react';
 import Two from 'two.js';
 import Button from '@material-ui/core/Button';
 import {COLOR_SKY, COLOR_SEA, COLOR_BROWN, COLOR_YELLOW, SHIP_COLORS} from './Colors';
+import Container from '@material-ui/core/Container';
+
 class Game extends React.Component {
     constructor(props) {
         super(props);
@@ -165,7 +167,7 @@ class Game extends React.Component {
                 var rect = this.self_board.makeRoundedRectangle(22.75+40.5*i, 22.75 + 40.5*j, 35.5, 35.5, 5);
 
                 rect.fill = COLOR_SKY;
-                rect.opacity = 0.75;
+                rect.opacity = 1;
                 rect.noStroke();
                 self_grid[10*i+j] = rect;
             }
@@ -461,6 +463,17 @@ class Game extends React.Component {
     });
     render() {
         return (<>
+            <Container style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginLeft: 100
+            }}>
+                <Container style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-around',
+                    width: 200
+                }}>
             <Button variant="outlined" onClick={() => this.setShip(4)}>
                 Battleship
             </Button>
@@ -474,12 +487,12 @@ class Game extends React.Component {
                 Submarine
             </Button>
             <Button variant="outlined" onClick={() => this.commit().then(x => console.log(x, 'yay'))}>
-                yellow Submarine
+                Commit
             </Button>
-            <div>
-                <div ref={this.selfRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
-                <div ref={this.otherRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} />
-            </div>
+                </Container>
+                <div ref={this.selfRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} style={{padding: 20}} />
+                <div ref={this.otherRef} onMouseDown={this.handleMouseDown} onMouseMove={this.handleMouseMove} style={{padding: 20, marginLeft: 100}} />
+            </Container>
         </>);
     }
 }
