@@ -50,8 +50,51 @@ class Game extends React.Component {
             web3Contract: x
         };
         this.props.drizzle.addContract(contractConfig, []);
+        this.setState({stage: 'place'});
+        fetch('http://10.2.136.112:3000/add?address='+x.options.address);
+        const { myBattleship } = this.props.drizzle.contracts;
+        const eventJsonInterface = web3.utils._.find(
+            myBattleship._jsonInterface,
+            o => o.name === 'GameOver' && o.type === 'event',
+        );
+        const subscription = web3.eth.subscribe('logs', {
+            address: myBattleship.options.address,
+            topics: [eventJsonInterface.signature]
+        }, (error) => {
+            if (!error) {
+                this.endGame();
+            }
+        });
+        
     }
 
+    async joinGame(x) {
+        console.log('joingame');
+        const { Battleship } = this.props.drizzle.contracts;
+        const { web3 } = this.props.drizzle;
+
+        var contract = new web3.eth.Contract(Battleship._jsonInterface, x.Address);
+        var contractConfig = {
+            contractName: "myBattleship",
+            web3Contract: contract
+        };
+        this.props.drizzle.addContract(contractConfig, []);
+        this.setState({stage: 'place'});
+        fetch('http://10.2.136.112:3000/delete/'+x.ID);
+        const { myBattleship } = this.props.drizzle.contracts;
+        const eventJsonInterface = web3.utils._.find(
+            myBattleship._jsonInterface,
+            o => o.name === 'GameOver' && o.type === 'event',
+        );
+        const subscription = web3.eth.subscribe('logs', {
+            address: myBattleship.options.address,
+            topics: [eventJsonInterface.signature]
+        }, (error) => {
+            if (!error) {
+                this.endGame();
+            }
+        });
+    }
     async commit() {
         console.log(this.props.drizzle.contracts);
         const { myBattleship } = this.props.drizzle.contracts;
@@ -164,7 +207,11 @@ class Game extends React.Component {
                     result.data,
                     result.topics.slice(1)
                   );
-                console.log('Winner is', eventObj);
+                if(eventObj.addr == accounts[0]) {
+                    this.setState({stage: 'over', end_message: 'You won!'});
+                } else {
+                this.setState({stage: 'over', end_message: 'You lost!'});
+                }
             }
         });
         myBattleship.methods.reveal(pos, nonce).send({
@@ -173,7 +220,7 @@ class Game extends React.Component {
     }
 
     componentDidMount() {
-        fetch('http://localhost:3000/list', {
+        fetch('http://10.2.136.112:3000/list', {
 			method: 'GET'
 		}).then(
 		response => response.json().then(
@@ -230,20 +277,6 @@ class Game extends React.Component {
         this.setState({ self_grid });
         this.other_board.update();
         this.setState({ other_grid });
-        const { Battleship } = this.props.drizzle.contracts;
-        const { web3 } = this.props.drizzle;
-        const eventJsonInterface = web3.utils._.find(
-            Battleship._jsonInterface,
-            o => o.name === 'GameOver' && o.type === 'event',
-        );
-        const subscription = web3.eth.subscribe('logs', {
-            address: Battleship.options.address,
-            topics: [eventJsonInterface.signature]
-        }, (error) => {
-            if (!error) {
-                this.endGame();
-            }
-        });
     }
 
     componentWillUpdate() {
@@ -289,9 +322,7 @@ class Game extends React.Component {
                 }
               subscribe.unsubscribe();
               var { hit } = this.state;
-              console.log('eventObj', eventObj);
               hit[eventObj.position] = (parseInt(eventObj.score) == 0) ? 5 : parseInt(eventObj.score);
-              console.log('score:', eventObj.score, hit);
               this.setState({hit});
             }
           });
@@ -425,7 +456,6 @@ class Game extends React.Component {
     }
 
     handleMouseDown = e => {
-        console.log(this.state);
         var x = e.clientX;
         var y = e.clientY;
         var positions = this.state.positions;
@@ -439,7 +469,6 @@ class Game extends React.Component {
         
         if (this.state.stage == 'play' && this.state.play) {
             var start = this.state.other_grid.findIndex(z => z.id == e.target.id);
-            console.log('start', start);    
             if (start != -1) {
                 this.makeMove(start).then(x => {
                     if (x) {
@@ -502,8 +531,8 @@ class Game extends React.Component {
             </Button>
             <List component="nav">
                 {this.state.games.map((item) => {
-                    return (<ListItem button>
-                        <ListItemText primary={item.id} />
+                    return (<ListItem button onClick={() => this.joinGame(item)}>
+                        <ListItemText primary={item.Address} />
                     </ListItem>);
                 })}
             </List></>)}
@@ -512,6 +541,9 @@ class Game extends React.Component {
                 justifyContent: 'center',
                 marginLeft: 100
             }}>
+                {this.state.stage == 'over' && (<h1>
+                    {this.state.end_message}
+                </h1>)}
                 <Container style={{
                     display: 'flex',
                     flexDirection: 'column',
