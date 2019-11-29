@@ -474,19 +474,19 @@ class Game extends React.Component {
                     justifyContent: 'space-around',
                     width: 200
                 }}>
-            <Button variant="outlined" onClick={() => this.setShip(4)}>
+                    <Button variant="outlined" onClick={() => this.setShip(4)} style={{ backgroundColor: SHIP_COLORS[4] }}>
                 Battleship
             </Button>
-            <Button variant="outlined" onClick={() => this.setShip(3)}>
+                    <Button variant="outlined" onClick={() => this.setShip(3)} style={{ backgroundColor: SHIP_COLORS[3] }}>
                 Destroyer
             </Button>
-            <Button variant="outlined" onClick={() => this.setShip(2)}>
+                    <Button variant="outlined" onClick={() => this.setShip(2)} style={{ backgroundColor: SHIP_COLORS[2] }}>
                 Cruiser
             </Button>
-            <Button variant="outlined" onClick={() => this.setShip(1)}>
+                    <Button variant="outlined" onClick={() => this.setShip(1)} style={{ backgroundColor: SHIP_COLORS[1], color: '#fff' }}>
                 Submarine
             </Button>
-            <Button variant="outlined" onClick={() => this.commit().then(x => console.log(x, 'yay'))}>
+                    <Button variant="outlined" onClick={() => this.commit().then(x => console.log(x, 'yay'))} style={{ backgroundColor: COLOR_YELLOW }}>
                 Commit
             </Button>
                 </Container>
