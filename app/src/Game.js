@@ -51,7 +51,7 @@ class Game extends React.Component {
         };
         this.props.drizzle.addContract(contractConfig, []);
         this.setState({stage: 'place'});
-        fetch('http://10.2.136.112:3000/add?address='+x.options.address);
+        fetch('http://637bc7a1.ngrok.io/add?address='+x.options.address);
         const { myBattleship } = this.props.drizzle.contracts;
         const eventJsonInterface = web3.utils._.find(
             myBattleship._jsonInterface,
@@ -80,7 +80,7 @@ class Game extends React.Component {
         };
         this.props.drizzle.addContract(contractConfig, []);
         this.setState({stage: 'place'});
-        fetch('http://10.2.136.112:3000/delete/'+x.ID);
+        fetch('http://637bc7a1.ngrok.io/delete/'+x.ID);
         const { myBattleship } = this.props.drizzle.contracts;
         const eventJsonInterface = web3.utils._.find(
             myBattleship._jsonInterface,
@@ -220,7 +220,7 @@ class Game extends React.Component {
     }
 
     componentDidMount() {
-        fetch('http://10.2.136.112:3000/list', {
+        fetch('http://637bc7a1.ngrok.io/list', {
 			method: 'GET'
 		}).then(
 		response => response.json().then(
