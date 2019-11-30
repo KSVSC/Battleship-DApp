@@ -1,3 +1,9 @@
 export var COLOR_SKY = 'rgb(134, 187, 246)';
 export var COLOR_SEA = 'rgb(35, 116, 171)';
-export var COLOR_BROWN = 'rgb(46, 56, 46)'
+export var COLOR_BROWN = 'rgb(46, 56, 46)';
+export var COLOR_YELLOW = 'rgb(250, 250, 0)';
+export var COLOR_GREEN = 'rgb(255,105,120)';
+export var COLOR_LIME = 'rgb(52,0,104)';
+export var COLOR_SKIN = 'rgb(156,208,143)';
+export var COLOR_PINK = 'rgb(239,131,84)';
+export var SHIP_COLORS = [COLOR_SKY, COLOR_LIME, COLOR_SKIN, COLOR_PINK, COLOR_GREEN, COLOR_BROWN]

@@ -46,14 +46,25 @@ contract Battleship {
     );
 
     /// @notice Event for declaring that a reply has been made
-    /// @param reply_index Index of the reply
+    /// @param position Location of the move
     /// @param player_index The player for whom reply is given
     /// @param score Type of ship hit
     event ReplyMove(
-        uint8 indexed reply_index,
+        uint8 indexed position,
         uint8 player_index,
         uint8 score
     );
+
+    /// @notice Event for declaring that a player has committed
+    /// @param player The player which committed
+    /// @param addr The address of the player which committed
+    event Commit(
+        uint8 player,
+        address addr
+    );
+
+    /// @notice Event declaring that the game has ended
+    event GameOver();
 
     /// @notice Deposit ether into the contract
     /// @param _amount Value of ether being deposited (in wei)
@@ -69,12 +80,14 @@ contract Battleship {
         if(player_address[0] == address(0)) {
             player_address[0] = msg.sender;
             commitment[0] = _commit;
+            emit Commit(0, msg.sender);
             return;
         }
         require(player_address[0] != msg.sender, "You cannot commit twice");
         require(player_address[1] == address(0), "Two Players commited already");
         player_address[1] = msg.sender;
         commitment[1] = _commit;
+        emit Commit(1, msg.sender);
         return;
     }
 
@@ -105,14 +118,14 @@ contract Battleship {
         score[player] = score[player] + 1;
         if(score[player] == 20) {
             end_game();
+            return;
         }
-        emit ReplyMove(move_idx[player], player, _reply);
+        emit ReplyMove(move_log[player][move_idx[player]-1], player, _reply);
     }
 
 
-    function end_game() public returns (string memory) {
-        // TODO: Emit event that GAME OVER
-        return "game over";
+    function end_game() public {
+        emit GameOver();
     }
 
 
