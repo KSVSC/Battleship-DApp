@@ -118,6 +118,7 @@ contract Battleship {
         score[player] = score[player] + 1;
         if(score[player] == 20) {
             end_game();
+            return;
         }
         emit ReplyMove(move_log[player][move_idx[player]-1], player, _reply);
     }
